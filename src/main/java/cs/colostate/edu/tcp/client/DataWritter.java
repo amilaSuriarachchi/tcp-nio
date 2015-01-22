@@ -40,7 +40,8 @@ public class DataWritter extends OutputStream {
         this.lock.lock();
         try {
             setReadMode();
-            if (this.byteBuffer.hasRemaining()) {
+            // this is to improve the performance if one connection is being used.
+            if (2 * this.byteBuffer.remaining() > this.byteBuffer.limit()) {
                 SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                 socketChannel.write(this.byteBuffer);
                 this.condition.signalAll();

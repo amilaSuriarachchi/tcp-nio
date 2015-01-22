@@ -42,6 +42,7 @@ public class ServerTask implements Runnable {
                     message.read(dataInput);
                 }
                 this.serverConnection.releaseDataInput(dataInput);
+
             } catch (MessageProcessingException e) {
                 this.logger.log(Level.SEVERE, "Can not parse the message");
             }

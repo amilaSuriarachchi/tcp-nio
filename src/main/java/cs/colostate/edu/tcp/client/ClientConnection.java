@@ -47,6 +47,7 @@ public class ClientConnection {
         selectionKey.attach(outputStream);
         this.freeDataOutputs.add(dataOutput);
         this.notifyAll();
+
     }
 
     public Node getTargetNode() {
