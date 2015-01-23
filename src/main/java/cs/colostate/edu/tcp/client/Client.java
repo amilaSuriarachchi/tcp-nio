@@ -18,7 +18,7 @@ import java.util.concurrent.CyclicBarrier;
  */
 public class Client {
 
-    private void startClient(String host, int port, int numOfMessages, int numberOfWorkers, int clientBuffer) {
+    public void startClient(String host, int port, int numOfMessages, int numberOfWorkers, int clientBuffer) {
         ClientManager clientManager = new ClientManager();
         clientManager.start();
 
@@ -82,6 +82,8 @@ public class Client {
         client.startClient(host, port, numberOfMsgs, numberOfWorkers, clientBuffer);
 
     }
+
+
 }
 
 

@@ -11,7 +11,7 @@ import cs.colostate.edu.tcp.Configurator;
  */
 public class Server {
 
-    private void startServer(int port){
+    public void startServer(int port){
         ServerManager serverManager = new ServerManager(port);
         serverManager.start();
     }
