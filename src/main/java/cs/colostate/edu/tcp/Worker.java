@@ -3,6 +3,7 @@ package cs.colostate.edu.tcp;
 import cs.colostate.edu.tcp.admin.AdminService;
 import cs.colostate.edu.tcp.admin.ConnectionManager;
 import cs.colostate.edu.tcp.server.Server;
+import cs.colostate.edu.tcp.server.ServerManager;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,14 +14,13 @@ import cs.colostate.edu.tcp.server.Server;
  */
 public class Worker {
 
-     private void startWorker(int workerPort, int adminPort){
-         Server server = new Server();
-         server.startServer(workerPort);
+    private void startWorker(int workerPort, int adminPort) {
+        ServerManager serverManager = new ServerManager(workerPort);
+        serverManager.start();
 
-         ConnectionManager connectionManager = new ConnectionManager(adminPort, new AdminService());
-         connectionManager.start();
-     }
-
+        ConnectionManager connectionManager = new ConnectionManager(adminPort, new AdminService(serverManager));
+        connectionManager.start();
+    }
 
 
     public static void main(String[] args) {

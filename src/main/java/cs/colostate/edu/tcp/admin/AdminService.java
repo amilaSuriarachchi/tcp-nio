@@ -4,7 +4,9 @@ import cs.colostate.edu.tcp.Constants;
 import cs.colostate.edu.tcp.admin.message.ACKMessage;
 import cs.colostate.edu.tcp.admin.message.Message;
 import cs.colostate.edu.tcp.admin.message.StartClientMessage;
+import cs.colostate.edu.tcp.admin.message.SummaryMessage;
 import cs.colostate.edu.tcp.client.Client;
+import cs.colostate.edu.tcp.server.ServerManager;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,6 +17,14 @@ import cs.colostate.edu.tcp.client.Client;
  */
 public class AdminService implements MessageCallback {
 
+    private ServerManager serverManager;
+    private Client client;
+
+    public AdminService(ServerManager serverManager) {
+        this.serverManager = serverManager;
+        this.client = new Client();
+    }
+
     public Message messageReceived(Message message) {
         Message response = null;
         switch (message.getMessageType()) {
@@ -23,19 +33,32 @@ public class AdminService implements MessageCallback {
                 response = startClient((StartClientMessage) message);
                 break;
             }
+            case Constants.SUMMARY_REQUEST_MESSAGE_TYPE: {
+                response = getSummary();
+            }
         }
         return response;
+
+    }
+
+    private Message getSummary() {
+
+        return new SummaryMessage(this.serverManager.getReceivedTotal(),
+                this.serverManager.getTotalLatency(),
+                this.client.getTotoalSend(),
+                this.client.getTotalTime());
 
     }
 
     private Message startClient(StartClientMessage message) {
 
         ClientStarter clientStarter =
-                new ClientStarter(message.getHost(),
+                new ClientStarter(message.getHosts(),
                         message.getPort(),
                         message.getNumOfMessages(),
                         message.getNumberOfWorkers(),
-                        message.getClientBuffer());
+                        message.getClientBuffer(),
+                        this.client);
 
         Thread thread = new Thread(clientStarter);
         thread.start();

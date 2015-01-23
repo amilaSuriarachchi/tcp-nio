@@ -13,6 +13,7 @@ public class ServerManager {
 
     private ServerIOReactor serverIOReactor;
     private int port;
+    private ServerTask[] tasks;
 
     public ServerManager(int port) {
         this.port = port;
@@ -21,10 +22,12 @@ public class ServerManager {
     public void start() {
 
         ServerConnection serverConnection = new ServerConnection();
+        this.tasks = new ServerTask[Configurator.getInstance().getWorkerPoolSize()];
+
         // start the Server Task pool
         for (int i = 0; i < Configurator.getInstance().getWorkerPoolSize(); i++) {
-            ServerTask serverTask = new ServerTask(serverConnection);
-            Thread thread = new Thread(serverTask);
+            this.tasks[i] = new ServerTask(serverConnection);
+            Thread thread = new Thread(this.tasks[i]);
             thread.start();
         }
 
@@ -33,5 +36,22 @@ public class ServerManager {
         serverThread.start();
 
     }
+
+    public int getReceivedTotal() {
+        int total = 0;
+        for (ServerTask task : this.tasks) {
+            total += task.getTotalMessages();
+        }
+        return total;
+    }
+
+    public double getTotalLatency() {
+        double total = 0;
+        for (ServerTask task : this.tasks) {
+            total += task.getTotalLatency();
+        }
+        return total;
+    }
+
 
 }

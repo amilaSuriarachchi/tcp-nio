@@ -4,6 +4,13 @@ import cs.colostate.edu.tcp.admin.ConnectionException;
 import cs.colostate.edu.tcp.admin.ConnectionManager;
 import cs.colostate.edu.tcp.admin.message.MessageProcessingException;
 import cs.colostate.edu.tcp.admin.message.StartClientMessage;
+import cs.colostate.edu.tcp.admin.message.SummaryMessage;
+import cs.colostate.edu.tcp.admin.message.SummaryRequestMessage;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -23,22 +30,63 @@ public class Manager {
 
         // send messages to workers to start the workers                         ,
         ConnectionManager connectionManager = new ConnectionManager();
-
         //create the start client message
-
         try {
-            StartClientMessage startClientMessage =
-                    new StartClientMessage("lattice-50", workerPort, numberOfMsgs, numberOfWorkers, clientBuffer);
-            connectionManager.sendMessage(startClientMessage, "lattice-51", adminPort);
-            startClientMessage =
-                    new StartClientMessage("lattice-51", workerPort, numberOfMsgs, numberOfWorkers, clientBuffer);
-            connectionManager.sendMessage(startClientMessage, "lattice-50", adminPort);
+            for (int i = 0; i < workers.length; i++) {
+                StartClientMessage startClientMessage =
+                        new StartClientMessage(getOtherHosts(workers, i), workerPort, numberOfMsgs, numberOfWorkers, clientBuffer);
+                connectionManager.sendMessage(startClientMessage, workers[i], adminPort);
+            }
         } catch (MessageProcessingException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (ConnectionException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
+        System.out.print("\n>>");
+        BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
+        try {
+            String commandString = bufferRead.readLine();
+            displaySummary(workers, adminPort);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private void displaySummary(String[] workers, int adminPort){
+        ConnectionManager connectionManager = new ConnectionManager();
+
+        for (String worker : workers){
+            SummaryRequestMessage summaryRequestMessage = new SummaryRequestMessage();
+            try {
+               SummaryMessage summaryMessage =
+                       (SummaryMessage) connectionManager.sendMessage(summaryRequestMessage, worker, adminPort);
+                System.out.println("--------------" + worker + " summary --------------------");
+                System.out.println("Total received - " + summaryMessage.getTotalReceived() + " Total latency - "
+                        + summaryMessage.getTotalLatency() + " Total send - " + summaryMessage.getTotalSend() + " Total time " + summaryMessage.getTotalTime());
+                System.out.println("Latency - " + summaryMessage.getLatency() + " Throughput - " + summaryMessage.getThroughput());
+            } catch (MessageProcessingException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (ConnectionException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+
+        }
+
+
+    }
+
+    private List<String> getOtherHosts(String[] workers, int i) {
+
+        List<String> otherHosts = new ArrayList<String>();
+        for (int j = 0; j < workers.length; j++) {
+            if (j != i) {
+                otherHosts.add(workers[j]);
+            }
+        }
+        return otherHosts;
 
     }
 

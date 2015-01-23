@@ -24,21 +24,18 @@ import java.util.concurrent.CyclicBarrier;
  */
 public class ClientWorker implements Runnable {
 
-    private ClientManager clientManager;
-    private Node targetNode;
+    private Stream stream;
     private int numOfMessages;
     private int clientBuffer;
     private CyclicBarrier cyclicBarrier;
     private CountDownLatch countDownLatch;
 
-    public ClientWorker(ClientManager clientManager,
-                        Node targetNode,
+    public ClientWorker(Stream stream,
                         int numOfMessages,
                         int clientBuffer,
                         CyclicBarrier cyclicBarrier,
                         CountDownLatch countDownLatch) {
-        this.clientManager = clientManager;
-        this.targetNode = targetNode;
+        this.stream = stream;
         this.numOfMessages = numOfMessages;
         this.cyclicBarrier = cyclicBarrier;
         this.countDownLatch = countDownLatch;
@@ -64,10 +61,9 @@ public class ClientWorker implements Runnable {
                     messages.add(testMessage);
                 }
 
-                this.clientManager.sendEvents(messages, this.targetNode);
+                this.stream.emit(messages);
 
             }
-            System.out.println("Finish sending message " + Thread.currentThread().getId());
             this.countDownLatch.countDown();
         } catch (MessageProcessingException e) {
             e.printStackTrace();

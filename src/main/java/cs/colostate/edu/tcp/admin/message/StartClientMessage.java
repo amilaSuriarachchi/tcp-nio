@@ -5,6 +5,8 @@ import cs.colostate.edu.tcp.Constants;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +17,7 @@ import java.io.IOException;
  */
 public class StartClientMessage implements Message {
 
-    private String host;
+    private List<String> hosts;
     private int port;
     private int numOfMessages;
     private int numberOfWorkers;
@@ -24,8 +26,8 @@ public class StartClientMessage implements Message {
     public StartClientMessage() {
     }
 
-    public StartClientMessage(String host, int port, int numOfMessages, int numberOfWorkers, int clientBuffer) {
-        this.host = host;
+    public StartClientMessage(List<String> hosts, int port, int numOfMessages, int numberOfWorkers, int clientBuffer) {
+        this.hosts = hosts;
         this.port = port;
         this.numOfMessages = numOfMessages;
         this.numberOfWorkers = numberOfWorkers;
@@ -39,7 +41,10 @@ public class StartClientMessage implements Message {
     public void serialize(DataOutput dataOutput) throws MessageProcessingException {
         try {
             dataOutput.writeInt(Constants.START_CLIENT_MESSAGE_TYPE);
-            dataOutput.writeUTF(this.host);
+            dataOutput.writeInt(this.hosts.size());
+            for (String host : this.hosts){
+                dataOutput.writeUTF(host);
+            }
             dataOutput.writeInt(this.port);
             dataOutput.writeInt(this.numOfMessages);
             dataOutput.writeInt(this.numberOfWorkers);
@@ -51,7 +56,11 @@ public class StartClientMessage implements Message {
 
     public void parse(DataInput dataInput) throws MessageProcessingException {
         try {
-            this.host = dataInput.readUTF();
+            int size = dataInput.readInt();
+            this.hosts = new ArrayList<String>(size);
+            for (int i = 0 ; i < size; i++){
+                this.hosts.add(dataInput.readUTF());
+            }
             this.port = dataInput.readInt();
             this.numOfMessages = dataInput.readInt();
             this.numberOfWorkers = dataInput.readInt();
@@ -62,12 +71,12 @@ public class StartClientMessage implements Message {
         }
     }
 
-    public String getHost() {
-        return host;
+    public List<String> getHosts() {
+        return hosts;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setHosts(List<String> hosts) {
+        this.hosts = hosts;
     }
 
     public int getPort() {

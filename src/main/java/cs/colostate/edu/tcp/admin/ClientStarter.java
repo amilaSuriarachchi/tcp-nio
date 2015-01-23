@@ -1,6 +1,12 @@
 package cs.colostate.edu.tcp.admin;
 
+import cs.colostate.edu.tcp.Node;
 import cs.colostate.edu.tcp.client.Client;
+import cs.colostate.edu.tcp.client.ClientManager;
+import cs.colostate.edu.tcp.client.Stream;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,22 +17,37 @@ import cs.colostate.edu.tcp.client.Client;
  */
 public class ClientStarter implements Runnable {
 
-    private String host;
+    private List<String> hosts;
     private int port;
     private int numOfMessages;
     private int numberOfWorkers;
     private int clientBuffer;
+    private Client client;
 
-    public ClientStarter(String host, int port, int numOfMessages, int numberOfWorkers, int clientBuffer) {
-        this.host = host;
+    public ClientStarter(List<String> hosts,
+                         int port,
+                         int numOfMessages,
+                         int numberOfWorkers,
+                         int clientBuffer,
+                         Client client) {
+        this.hosts = hosts;
         this.port = port;
         this.numOfMessages = numOfMessages;
         this.numberOfWorkers = numberOfWorkers;
         this.clientBuffer = clientBuffer;
+        this.client = client;
     }
 
     public void run() {
-        Client client = new Client();
-        client.startClient(this.host, this.port, this.numOfMessages, this.numberOfWorkers, this.clientBuffer);
+
+        List<Node> nodes = new ArrayList<Node>();
+        for (String host : this.hosts) {
+            nodes.add(new Node(this.port, host));
+        }
+
+        ClientManager clientManager = new ClientManager();
+        clientManager.start();
+        Stream stream = new Stream(nodes, clientManager);
+        this.client.startClient(stream, this.numOfMessages, this.numberOfWorkers, this.clientBuffer);
     }
 }

@@ -31,6 +31,16 @@ public class MessageFactory {
                     message = new StartClientMessage();
                     break;
                 }
+
+                case Constants.SUMMARY_MESSAGE_TYPE:{
+                    message = new SummaryMessage();
+                    break;
+                }
+
+                case Constants.SUMMARY_REQUEST_MESSAGE_TYPE:{
+                    message = new SummaryRequestMessage();
+                    break;
+                }
             }
 
             message.parse(dataInput);
