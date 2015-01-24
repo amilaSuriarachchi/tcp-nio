@@ -41,6 +41,16 @@ public class MessageFactory {
                     message = new SummaryRequestMessage();
                     break;
                 }
+
+                case Constants.CLEAR_STAT_MESSAGE_TYPE: {
+                    message = new ClearStatMessage();
+                    break;
+                }
+
+                case Constants.INITIALIZE_MESSAGE_TYPE: {
+                    message = new InitializeMessage();
+                    break;
+                }
             }
 
             message.parse(dataInput);

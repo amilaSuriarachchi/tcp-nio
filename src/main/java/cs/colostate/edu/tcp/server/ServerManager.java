@@ -53,5 +53,11 @@ public class ServerManager {
         return total;
     }
 
+    public void clearStats() {
+        for (ServerTask task : this.tasks) {
+            task.clearStats();
+        }
+    }
+
 
 }

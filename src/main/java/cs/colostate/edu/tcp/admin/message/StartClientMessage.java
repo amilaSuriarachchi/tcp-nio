@@ -17,8 +17,6 @@ import java.util.List;
  */
 public class StartClientMessage implements Message {
 
-    private List<String> hosts;
-    private int port;
     private int numOfMessages;
     private int numberOfWorkers;
     private int clientBuffer;
@@ -26,9 +24,7 @@ public class StartClientMessage implements Message {
     public StartClientMessage() {
     }
 
-    public StartClientMessage(List<String> hosts, int port, int numOfMessages, int numberOfWorkers, int clientBuffer) {
-        this.hosts = hosts;
-        this.port = port;
+    public StartClientMessage(int numOfMessages, int numberOfWorkers, int clientBuffer) {
         this.numOfMessages = numOfMessages;
         this.numberOfWorkers = numberOfWorkers;
         this.clientBuffer = clientBuffer;
@@ -41,11 +37,6 @@ public class StartClientMessage implements Message {
     public void serialize(DataOutput dataOutput) throws MessageProcessingException {
         try {
             dataOutput.writeInt(Constants.START_CLIENT_MESSAGE_TYPE);
-            dataOutput.writeInt(this.hosts.size());
-            for (String host : this.hosts){
-                dataOutput.writeUTF(host);
-            }
-            dataOutput.writeInt(this.port);
             dataOutput.writeInt(this.numOfMessages);
             dataOutput.writeInt(this.numberOfWorkers);
             dataOutput.writeInt(this.clientBuffer);
@@ -56,12 +47,6 @@ public class StartClientMessage implements Message {
 
     public void parse(DataInput dataInput) throws MessageProcessingException {
         try {
-            int size = dataInput.readInt();
-            this.hosts = new ArrayList<String>(size);
-            for (int i = 0 ; i < size; i++){
-                this.hosts.add(dataInput.readUTF());
-            }
-            this.port = dataInput.readInt();
             this.numOfMessages = dataInput.readInt();
             this.numberOfWorkers = dataInput.readInt();
             this.clientBuffer = dataInput.readInt();
@@ -69,22 +54,6 @@ public class StartClientMessage implements Message {
         } catch (IOException e) {
             throw new MessageProcessingException("Can not read the message");
         }
-    }
-
-    public List<String> getHosts() {
-        return hosts;
-    }
-
-    public void setHosts(List<String> hosts) {
-        this.hosts = hosts;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
     }
 
     public int getNumOfMessages() {

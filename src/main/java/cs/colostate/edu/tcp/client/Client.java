@@ -24,21 +24,23 @@ public class Client {
     private int totoalSend;
     private long totalTime;
 
-
-    public void startClient(Stream stream, int numOfMessages, int numberOfWorkers, int clientBuffer) {
-
-
+    public void initializeConnections(Stream stream) {
         List<Message> testMessages = new ArrayList<Message>(20);
         for (int i = 0; i < 20; i++) {
             TestMessage testMessage = new TestMessage(5, System.currentTimeMillis(), 34568, "ecg1", "receiver", "producer");
             testMessages.add(testMessage);
         }
-
         try {
             stream.emit(testMessages);
         } catch (MessageProcessingException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
+
+    }
+
+
+    public void startClient(Stream stream, int numOfMessages, int numberOfWorkers, int clientBuffer) {
+
 
         CyclicBarrier cyclicBarrier = new CyclicBarrier(numberOfWorkers + 1);
         CountDownLatch countDownLatch = new CountDownLatch(numberOfWorkers);

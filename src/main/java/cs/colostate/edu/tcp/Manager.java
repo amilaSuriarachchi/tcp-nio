@@ -2,10 +2,7 @@ package cs.colostate.edu.tcp;
 
 import cs.colostate.edu.tcp.admin.ConnectionException;
 import cs.colostate.edu.tcp.admin.ConnectionManager;
-import cs.colostate.edu.tcp.admin.message.MessageProcessingException;
-import cs.colostate.edu.tcp.admin.message.StartClientMessage;
-import cs.colostate.edu.tcp.admin.message.SummaryMessage;
-import cs.colostate.edu.tcp.admin.message.SummaryRequestMessage;
+import cs.colostate.edu.tcp.admin.message.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -30,11 +27,34 @@ public class Manager {
 
         // send messages to workers to start the workers                         ,
         ConnectionManager connectionManager = new ConnectionManager();
-        //create the start client message
         try {
+            //first sends a connection creation message
+            for (int i = 0; i < workers.length; i++) {
+                InitializeMessage initializeMessage = new InitializeMessage(getOtherHosts(workers, i), workerPort);
+                connectionManager.sendMessage(initializeMessage, workers[i], adminPort);
+            }
+            System.out.println("Finish initializing ... ");
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            for (int i = 0; i < workers.length; i++) {
+                ClearStatMessage clearStatMessage = new ClearStatMessage();
+                connectionManager.sendMessage(clearStatMessage, workers[i], adminPort);
+            }
+            System.out.println("Finish clearing ... ");
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //create the start client message
             for (int i = 0; i < workers.length; i++) {
                 StartClientMessage startClientMessage =
-                        new StartClientMessage(getOtherHosts(workers, i), workerPort, numberOfMsgs, numberOfWorkers, clientBuffer);
+                        new StartClientMessage(numberOfMsgs, numberOfWorkers, clientBuffer);
                 connectionManager.sendMessage(startClientMessage, workers[i], adminPort);
             }
         } catch (MessageProcessingException e) {
@@ -55,14 +75,14 @@ public class Manager {
 
     }
 
-    private void displaySummary(String[] workers, int adminPort){
+    private void displaySummary(String[] workers, int adminPort) {
         ConnectionManager connectionManager = new ConnectionManager();
 
-        for (String worker : workers){
+        for (String worker : workers) {
             SummaryRequestMessage summaryRequestMessage = new SummaryRequestMessage();
             try {
-               SummaryMessage summaryMessage =
-                       (SummaryMessage) connectionManager.sendMessage(summaryRequestMessage, worker, adminPort);
+                SummaryMessage summaryMessage =
+                        (SummaryMessage) connectionManager.sendMessage(summaryRequestMessage, worker, adminPort);
                 System.out.println("--------------" + worker + " summary --------------------");
                 System.out.println("Total received - " + summaryMessage.getTotalReceived() + " Total latency - "
                         + summaryMessage.getTotalLatency() + " Total send - " + summaryMessage.getTotalSend() + " Total time " + summaryMessage.getTotalTime());

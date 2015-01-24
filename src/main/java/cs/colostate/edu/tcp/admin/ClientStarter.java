@@ -17,21 +17,18 @@ import java.util.List;
  */
 public class ClientStarter implements Runnable {
 
-    private List<String> hosts;
-    private int port;
+    private Stream stream;
     private int numOfMessages;
     private int numberOfWorkers;
     private int clientBuffer;
     private Client client;
 
-    public ClientStarter(List<String> hosts,
-                         int port,
+    public ClientStarter(Stream stream,
                          int numOfMessages,
                          int numberOfWorkers,
                          int clientBuffer,
                          Client client) {
-        this.hosts = hosts;
-        this.port = port;
+        this.stream = stream;
         this.numOfMessages = numOfMessages;
         this.numberOfWorkers = numberOfWorkers;
         this.clientBuffer = clientBuffer;
@@ -39,15 +36,6 @@ public class ClientStarter implements Runnable {
     }
 
     public void run() {
-
-        List<Node> nodes = new ArrayList<Node>();
-        for (String host : this.hosts) {
-            nodes.add(new Node(this.port, host));
-        }
-
-        ClientManager clientManager = new ClientManager();
-        clientManager.start();
-        Stream stream = new Stream(nodes, clientManager);
-        this.client.startClient(stream, this.numOfMessages, this.numberOfWorkers, this.clientBuffer);
+        this.client.startClient(this.stream, this.numOfMessages, this.numberOfWorkers, this.clientBuffer);
     }
 }

@@ -54,6 +54,11 @@ public class ServerTask implements Runnable {
         }
     }
 
+    public void clearStats(){
+        this.totalMessages = 0;
+        this.totalLatency = 0;
+    }
+
     public double getTotalLatency() {
         return totalLatency;
     }
