@@ -7,6 +7,8 @@ import cs.colostate.edu.tcp.admin.message.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,6 +32,7 @@ public class Manager {
         try {
             //first sends a connection creation message
             for (int i = 0; i < workers.length; i++) {
+                System.out.println("Sending message to worker " + workers[i]);
                 InitializeMessage initializeMessage = new InitializeMessage(getOtherHosts(workers, i), workerPort);
                 connectionManager.sendMessage(initializeMessage, workers[i], adminPort);
             }
@@ -78,6 +81,9 @@ public class Manager {
     private void displaySummary(String[] workers, int adminPort) {
         ConnectionManager connectionManager = new ConnectionManager();
 
+        double totalLatency = 0;
+        double totalThroughput = 0;
+
         for (String worker : workers) {
             SummaryRequestMessage summaryRequestMessage = new SummaryRequestMessage();
             try {
@@ -87,6 +93,8 @@ public class Manager {
                 System.out.println("Total received - " + summaryMessage.getTotalReceived() + " Total latency - "
                         + summaryMessage.getTotalLatency() + " Total send - " + summaryMessage.getTotalSend() + " Total time " + summaryMessage.getTotalTime());
                 System.out.println("Latency - " + summaryMessage.getLatency() + " Throughput - " + summaryMessage.getThroughput());
+                totalLatency += summaryMessage.getLatency();
+                totalThroughput += summaryMessage.getThroughput();
             } catch (MessageProcessingException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             } catch (ConnectionException e) {
@@ -94,6 +102,9 @@ public class Manager {
             }
 
         }
+
+        System.out.println("Average latency " + totalLatency / workers.length);
+        System.out.println("Average throughput " + totalThroughput / workers.length);
 
 
     }
@@ -124,4 +135,5 @@ public class Manager {
 
 
     }
+
 }

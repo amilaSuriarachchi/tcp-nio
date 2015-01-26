@@ -25,11 +25,7 @@ public class Client {
     private long totalTime;
 
     public void initializeConnections(Stream stream) {
-        List<Message> testMessages = new ArrayList<Message>(20);
-        for (int i = 0; i < 20; i++) {
-            TestMessage testMessage = new TestMessage(5, System.currentTimeMillis(), 34568, "ecg1", "receiver", "producer");
-            testMessages.add(testMessage);
-        }
+        List<Message> testMessages = new ArrayList<Message>();
         try {
             stream.emit(testMessages);
         } catch (MessageProcessingException e) {
@@ -79,28 +75,6 @@ public class Client {
     public long getTotalTime() {
         return totalTime;
     }
-
-    //    public static void main(String[] args) {
-//
-//        String host = args[0];
-//        int port = Integer.parseInt(args[1]);
-//        int numberOfMsgs = Integer.parseInt(args[2]);
-//        int numberOfWorkers = Integer.parseInt(args[3]);
-//
-//        int ioThreads = Integer.parseInt(args[4]);
-//        int connections = Integer.parseInt(args[5]);
-//        int bufferSize = Integer.parseInt(args[6]);
-//
-//        int clientBuffer = Integer.parseInt(args[7]);
-//
-//        Configurator configurator = Configurator.getInstance();
-//        configurator.setValues(ioThreads, 20, connections, bufferSize, 20);
-//
-//        Client client = new Client();
-//        client.startClient(host, port, numberOfMsgs, numberOfWorkers, clientBuffer);
-//
-//    }
-
 
 }
 
