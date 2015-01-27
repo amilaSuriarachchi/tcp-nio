@@ -82,6 +82,7 @@ public class Manager {
         ConnectionManager connectionManager = new ConnectionManager();
 
         double totalLatency = 0;
+        double totalReceived = 0;
         double totalThroughput = 0;
 
         for (String worker : workers) {
@@ -93,7 +94,8 @@ public class Manager {
                 System.out.println("Total received - " + summaryMessage.getTotalReceived() + " Total latency - "
                         + summaryMessage.getTotalLatency() + " Total send - " + summaryMessage.getTotalSend() + " Total time " + summaryMessage.getTotalTime());
                 System.out.println("Latency - " + summaryMessage.getLatency() + " Throughput - " + summaryMessage.getThroughput());
-                totalLatency += summaryMessage.getLatency();
+                totalLatency += summaryMessage.getTotalLatency();
+                totalReceived += summaryMessage.getTotalReceived();
                 totalThroughput += summaryMessage.getThroughput();
             } catch (MessageProcessingException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -103,8 +105,8 @@ public class Manager {
 
         }
 
-        System.out.println("Average latency " + totalLatency / workers.length);
-        System.out.println("Average throughput " + totalThroughput / workers.length);
+        System.out.println("Average latency " + totalLatency / totalReceived);
+        System.out.println("Aggregate throughput " + totalThroughput * 46 * 8 / 1073741824);
 
 
     }
