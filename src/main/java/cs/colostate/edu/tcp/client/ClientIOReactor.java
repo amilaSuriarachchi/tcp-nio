@@ -5,6 +5,8 @@ import cs.colostate.edu.tcp.Configurator;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketOptions;
+import java.net.StandardSocketOptions;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -61,7 +63,7 @@ public class ClientIOReactor implements Runnable {
             while (selector.isOpen()) {
 
                 ClientConnection clientConnection;
-                while ((clientConnection = this.pendingClientConnections.poll()) != null) {
+                if ((clientConnection = this.pendingClientConnections.poll()) != null) {
                     Node targetNode = clientConnection.getTargetNode();
                     // create connections for that
                     for (int i = 0; i < Configurator.getInstance().getTcpConnections(); i++) {
@@ -71,22 +73,24 @@ public class ClientIOReactor implements Runnable {
                         socketChannel.register(selector, SelectionKey.OP_CONNECT, clientConnection);
 
                     }
-
-                    selector.select();
-                    for (SelectionKey selectionKey : selector.selectedKeys()) {
-                        if (selectionKey.isConnectable()) {
-                            SocketChannel channel = (SocketChannel) selectionKey.channel();
-                            if (!channel.finishConnect()) {
-                                continue;
-                            }
-                            //find a chennel to handover this thread in round robin manner
-                            int channelNum = lastChennelSelected % numberOfProcessors;
-                            lastChennelSelected++;
-                            channelReactors.get(channelNum).addNewChannel(selectionKey);
-                        }
-                    }
-                    selector.selectedKeys().clear();
                 }
+
+                selector.select();
+                for (SelectionKey selectionKey : selector.selectedKeys()) {
+                    if (selectionKey.isConnectable()) {
+                        SocketChannel channel = (SocketChannel) selectionKey.channel();
+                        if (!channel.finishConnect()) {
+                            continue;
+                        }
+                        //find a chennel to handover this thread in round robin manner
+                        int channelNum = lastChennelSelected % numberOfProcessors;
+                        lastChennelSelected++;
+                        logger.log(Level.INFO, "Connected to server " + channel.getRemoteAddress());
+                        channelReactors.get(channelNum).addNewChannel(selectionKey);
+                    }
+                }
+                selector.selectedKeys().clear();
+
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Can not open the selector");
