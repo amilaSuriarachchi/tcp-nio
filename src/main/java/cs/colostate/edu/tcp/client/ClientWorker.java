@@ -67,7 +67,7 @@ public class ClientWorker implements Runnable {
             this.countDownLatch.countDown();
 
             // these messages are to flush messages of other remaining queues.
-            for (int i = 0; i < 25000; i++) {
+            for (int i = 0; i < 50000; i++) {
                 List<Message> messages = new ArrayList<Message>(this.clientBuffer);
                 for (int j = 0; j < this.clientBuffer; j++) {
                     TestMessage testMessage = new TestMessage(5, System.currentTimeMillis(), 34568, "ecg1", "receiver", "producer");
