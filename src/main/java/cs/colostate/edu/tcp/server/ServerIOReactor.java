@@ -4,6 +4,7 @@ import cs.colostate.edu.tcp.Configurator;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -64,6 +65,8 @@ public class ServerIOReactor implements Runnable {
                     if (selectionKey.isAcceptable()){
                         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
                         SocketChannel socketChannel = serverSocketChannel.accept();
+                        socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
+
                         //find a chennel to handover this thread in round robin manner
                         int channelNum = lastChennelSelected % numberOfProcessors;
                         lastChennelSelected++;

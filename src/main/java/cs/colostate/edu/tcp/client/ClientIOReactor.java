@@ -69,6 +69,7 @@ public class ClientIOReactor implements Runnable {
                     for (int i = 0; i < Configurator.getInstance().getTcpConnections(); i++) {
                         SocketChannel socketChannel = SocketChannel.open();
                         socketChannel.configureBlocking(false);
+                        socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
                         socketChannel.connect(new InetSocketAddress(targetNode.getIpAddress(), targetNode.getPort()));
                         socketChannel.register(selector, SelectionKey.OP_CONNECT, clientConnection);
 
