@@ -76,6 +76,39 @@ public class Client {
         return totalTime;
     }
 
+    public void startClient(String[] servers, int port, int numberOfMessages, int numberOfWorkers, int clientBuffer) {
+        List<Node> nodes = new ArrayList<Node>();
+        for (String host : servers) {
+            nodes.add(new Node(port, host));
+        }
+        ClientManager clientManager = new ClientManager();
+        clientManager.start();
+        Stream stream = new Stream(nodes, clientManager);
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) { }
+
+        this.startClient(stream, numberOfMessages, numberOfWorkers, clientBuffer);
+    }
+
+    public static void main(String[] args) {
+
+        String[] servers = args[0].split(",");
+        int port = Integer.parseInt(args[1]);
+        int numberOfMessages = Integer.parseInt(args[2]);
+        int numberOfWorkers = Integer.parseInt(args[3]);
+        int clientBuffer = Integer.parseInt(args[4]);
+
+        Configurator configurator = Configurator.getInstance();
+        configurator.setValues(1, 20, 8, 8192, 20);
+
+        Client client = new Client();
+        client.startClient(servers, port, numberOfMessages, numberOfWorkers, clientBuffer);
+
+    }
+
+
 }
 
 

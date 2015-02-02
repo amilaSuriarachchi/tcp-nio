@@ -1,6 +1,7 @@
 package cs.colostate.edu.tcp.client;
 
 import cs.colostate.edu.tcp.Node;
+import cs.colostate.edu.tcp.exception.MessageProcessingException;
 
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -24,17 +25,29 @@ public class ClientConnection {
     private Lock lock;
     private Condition condition;
 
+    private FailureCallback failureCallback;
+
+    private boolean isClosed;
+
     public ClientConnection(Node targetNode) {
         this.targetNode = targetNode;
         this.freeDataOutputs = new LinkedList<DataOutput>();
         this.lock = new ReentrantLock();
         this.condition = this.lock.newCondition();
+        this.isClosed = false;
     }
 
-    public DataOutput getDataOutput() {
+    public void setFailureCallback(FailureCallback failureCallback) {
+        this.failureCallback = failureCallback;
+    }
+
+    public DataOutput getDataOutput() throws MessageProcessingException {
         DataOutput returnDataOutput = null;
         this.lock.lock();
         while ((returnDataOutput = this.freeDataOutputs.poll()) == null) {
+            if (this.isClosed){
+                throw new MessageProcessingException("Connection is closed ");
+            }
             try {
                 this.condition.await();
             } catch (InterruptedException e) {
@@ -53,7 +66,7 @@ public class ClientConnection {
     }
 
     public void registerSelectionKey(SelectionKey selectionKey) {
-        OutputStream outputStream = new DataWritter();
+        OutputStream outputStream = new DataWritter(this);
         DataOutput dataOutput = new DataOutputStream(outputStream);
         //remove the current attachment
         selectionKey.attach(outputStream);
@@ -70,5 +83,13 @@ public class ClientConnection {
 
     public void setTargetNode(Node targetNode) {
         this.targetNode = targetNode;
+    }
+
+    public void close(){
+        this.failureCallback.nodeFailed(this.targetNode);
+        this.lock.lock();
+        this.isClosed = false;
+        this.condition.signalAll();
+        this.lock.unlock();
     }
 }

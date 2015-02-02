@@ -3,6 +3,7 @@ package cs.colostate.edu.tcp.server;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.locks.Condition;
@@ -51,7 +52,7 @@ public class ServerConnection {
 
     public void registerSelectionKey(SelectionKey selectionKey) {
 
-        DataReader dataReader = new DataReader();
+        DataReader dataReader = new DataReader((SocketChannel)selectionKey.channel());
         DataInput dataInput = new DataInputStream(dataReader);
         //remove the current attachment
         selectionKey.attach(dataReader);

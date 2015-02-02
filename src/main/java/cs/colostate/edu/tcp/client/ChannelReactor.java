@@ -1,5 +1,7 @@
 package cs.colostate.edu.tcp.client;
 
+import cs.colostate.edu.tcp.exception.MessageProcessingException;
+
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -36,7 +38,21 @@ public class ChannelReactor implements Runnable {
                     // that will create a separate connection for that.
                     if (selectionKey.isWritable()) {
                         DataWritter dataWritter = (DataWritter) selectionKey.attachment();
-                        dataWritter.writeReady(selectionKey);
+                        try {
+                            dataWritter.writeReady(selectionKey);
+                        } catch (MessageProcessingException e) {
+                            // this error could happen if the server node has crashed or shut down.
+                            logger.log(Level.SEVERE, e.getMessage());
+                            try {
+                                dataWritter.getClientConnection().close();
+                                dataWritter.close();
+                                SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+                                socketChannel.shutdownOutput();
+                                socketChannel.close();
+                            } catch (IOException e1) {
+                                this.logger.log(Level.SEVERE, e1.getMessage());
+                            }
+                        }
                     }
                 }
                 this.selector.selectedKeys().clear();

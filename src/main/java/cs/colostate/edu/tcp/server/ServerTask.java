@@ -27,8 +27,11 @@ public class ServerTask implements Runnable {
     private double totalLatency = 0;
     private int totalMessages = 0;
 
-    public ServerTask(ServerConnection serverConnection) {
+    private MessageReceiver messageReceiver;
+
+    public ServerTask(ServerConnection serverConnection, MessageReceiver messageReceiver) {
         this.serverConnection = serverConnection;
+        this.messageReceiver = messageReceiver;
     }
 
     public void run() {
@@ -41,15 +44,21 @@ public class ServerTask implements Runnable {
         while (true) {
             dataInput = this.serverConnection.getDataInput();
             try {
-                for (TestMessage message : messages){
-                    message.read(dataInput);
-                    this.totalLatency = this.totalLatency + System.currentTimeMillis() - message.getTime();
-                    this.totalMessages++;
+                try {
+                    for (TestMessage message : messages){
+                        message.read(dataInput);
+                        this.messageReceiver.onMessage(message);
+                        this.totalLatency = this.totalLatency + System.currentTimeMillis() - message.getTime();
+                        this.totalMessages++;
+                    }
+                } catch (MessageProcessingException e) {
+                    this.logger.log(Level.SEVERE, "Can not parse the message");
                 }
                 this.serverConnection.releaseDataInput(dataInput);
 
-            } catch (MessageProcessingException e) {
-                this.logger.log(Level.SEVERE, "Can not parse the message");
+            } catch (RuntimeException e) {
+                this.logger.log(Level.SEVERE, "Can not read data from connection " + e.getMessage());
+
             }
         }
     }

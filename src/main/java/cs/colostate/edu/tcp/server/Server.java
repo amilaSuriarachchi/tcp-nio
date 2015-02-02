@@ -18,13 +18,8 @@ public class Server {
 
     public static void main(String[] args) {
         Configurator configurator = Configurator.getInstance();
+        configurator.setValues(1, 20, 8, 8192, 20);
 
-        int ioThreads = Integer.parseInt(args[1]);
-        int workerThreads = Integer.parseInt(args[2]);
-        int bufferSize = Integer.parseInt(args[3]);
-        int taskBuffer = Integer.parseInt(args[4]);
-
-        configurator.setValues(ioThreads, workerThreads, 20, bufferSize, taskBuffer);
         Server server = new Server();
         server.startServer(Integer.parseInt(args[0]));
     }

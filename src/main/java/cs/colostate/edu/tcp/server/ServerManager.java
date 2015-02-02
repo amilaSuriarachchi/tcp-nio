@@ -24,9 +24,10 @@ public class ServerManager {
         ServerConnection serverConnection = new ServerConnection();
         this.tasks = new ServerTask[Configurator.getInstance().getWorkerPoolSize()];
 
+        MessageReceiver messageReceiver = new MessageReceiver();
         // start the Server Task pool
         for (int i = 0; i < Configurator.getInstance().getWorkerPoolSize(); i++) {
-            this.tasks[i] = new ServerTask(serverConnection);
+            this.tasks[i] = new ServerTask(serverConnection, messageReceiver);
             Thread thread = new Thread(this.tasks[i]);
             thread.start();
         }

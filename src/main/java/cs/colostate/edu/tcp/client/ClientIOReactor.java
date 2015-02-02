@@ -30,19 +30,26 @@ public class ClientIOReactor implements Runnable {
 
     private Queue<ClientConnection> pendingClientConnections;
 
+    private Selector selector;
+
     public ClientIOReactor() {
         this.pendingClientConnections = new ConcurrentLinkedQueue<ClientConnection>();
+        try {
+            this.selector = Selector.open();
+        } catch (IOException e) {
+            this.logger.log(Level.SEVERE, "Can not open the selector");
+        }
     }
 
     public void add(ClientConnection clientConnection) {
         this.pendingClientConnections.add(clientConnection);
+        this.selector.wakeup();
     }
 
 
     public void run() {
 
         try {
-            Selector selector = Selector.open();
 
             List<ChannelReactor> channelReactors = new ArrayList<ChannelReactor>();
             //create channel reactors according to the number of processors
@@ -60,7 +67,7 @@ public class ClientIOReactor implements Runnable {
 
             //TODO: think how to stop this looping for ever. If there are no pending tasks and all connections has
             //connected we need to make it wait
-            while (selector.isOpen()) {
+            while (this.selector.isOpen()) {
 
                 ClientConnection clientConnection;
                 if ((clientConnection = this.pendingClientConnections.poll()) != null) {
@@ -71,13 +78,13 @@ public class ClientIOReactor implements Runnable {
                         socketChannel.configureBlocking(false);
                         socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
                         socketChannel.connect(new InetSocketAddress(targetNode.getIpAddress(), targetNode.getPort()));
-                        socketChannel.register(selector, SelectionKey.OP_CONNECT, clientConnection);
+                        socketChannel.register(this.selector, SelectionKey.OP_CONNECT, clientConnection);
 
                     }
                 }
 
-                selector.select();
-                for (SelectionKey selectionKey : selector.selectedKeys()) {
+                this.selector.select();
+                for (SelectionKey selectionKey : this.selector.selectedKeys()) {
                     if (selectionKey.isConnectable()) {
                         SocketChannel channel = (SocketChannel) selectionKey.channel();
                         if (!channel.finishConnect()) {
@@ -87,10 +94,11 @@ public class ClientIOReactor implements Runnable {
                         int channelNum = lastChennelSelected % numberOfProcessors;
                         lastChennelSelected++;
                         logger.log(Level.INFO, "Connected to server " + channel.getRemoteAddress());
+                        channel.register(selector, 0, selectionKey.attachment());
                         channelReactors.get(channelNum).addNewChannel(selectionKey);
                     }
                 }
-                selector.selectedKeys().clear();
+                this.selector.selectedKeys().clear();
 
             }
         } catch (IOException e) {

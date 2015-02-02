@@ -28,12 +28,17 @@ public class DataWritter extends OutputStream {
     private Lock lock;
     private Condition condition;
     private int mode;
+    private ClientConnection clientConnection;
 
-    public DataWritter() {
+    private boolean isClosed;
+
+    public DataWritter(ClientConnection clientConnection) {
         this.lock = new ReentrantLock();
         this.condition = this.lock.newCondition();
         this.byteBuffer = ByteBuffer.allocate(Configurator.getInstance().getByteBufferSize());
         this.mode = BUFFER_WRITE_MODE;
+        this.clientConnection = clientConnection;
+        this.isClosed = false;
     }
 
     public void writeReady(SelectionKey selectionKey) throws MessageProcessingException {
@@ -47,7 +52,7 @@ public class DataWritter extends OutputStream {
                 this.condition.signalAll();
             }
         } catch (IOException e) {
-            throw new MessageProcessingException("Can not write to the channel ", e);
+            throw new MessageProcessingException("Can not write to the channel " + e.getMessage(), e);
         } finally {
             this.lock.unlock();
         }
@@ -66,6 +71,9 @@ public class DataWritter extends OutputStream {
         setWriteMode();
         try {
             while (len > 0) {
+                if (this.isClosed){
+                    throw new IOException("Data writer is closed ");
+                }
                 if (!this.byteBuffer.hasRemaining()) {
                     try {
                         this.condition.await();
@@ -101,5 +109,17 @@ public class DataWritter extends OutputStream {
             this.byteBuffer.flip();
             this.mode = BUFFER_READ_MODE;
         }
+    }
+
+    public ClientConnection getClientConnection() {
+        return clientConnection;
+    }
+
+    public void close() throws IOException {
+        this.lock.lock();
+        this.isClosed = true;
+        this.condition.signalAll();
+        this.lock.unlock();
+        super.close();
     }
 }
