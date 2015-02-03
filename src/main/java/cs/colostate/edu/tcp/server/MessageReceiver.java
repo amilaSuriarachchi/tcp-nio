@@ -15,12 +15,14 @@ public class MessageReceiver {
 
     private AtomicLong atomicLong = new AtomicLong(0);
     private long lastTime;
+    private int numberOfMessages = 4000000;
+    private long startTime = System.currentTimeMillis();
 
     public void onMessage(TestMessage message){
 
         long currentValue = this.atomicLong.incrementAndGet();
-        if ((currentValue % 2000000) == 0) {
-            System.out.println("Message Rate ==> " + 2000000000 / (System.currentTimeMillis() - this.lastTime));
+        if ((currentValue % numberOfMessages) == 0) {
+            System.out.println((System.currentTimeMillis() - this.startTime) / 1000 + "\t" + this.numberOfMessages * 1000.0 / (System.currentTimeMillis() - this.lastTime));
             this.lastTime = System.currentTimeMillis();
         }
 

@@ -44,17 +44,20 @@ public class ClientConnection {
     public DataOutput getDataOutput() throws MessageProcessingException {
         DataOutput returnDataOutput = null;
         this.lock.lock();
-        while ((returnDataOutput = this.freeDataOutputs.poll()) == null) {
-            if (this.isClosed){
-                throw new MessageProcessingException("Connection is closed ");
+        try {
+            while ((returnDataOutput = this.freeDataOutputs.poll()) == null) {
+                if (this.isClosed) {
+                    throw new MessageProcessingException("Connection is closed ");
+                }
+                try {
+                    this.condition.await();
+                } catch (InterruptedException e) {
+                    //TODO: handle this properly
+                }
             }
-            try {
-                this.condition.await();
-            } catch (InterruptedException e) {
-                //TODO: handle this properly
-            }
+        } finally {
+            this.lock.unlock();
         }
-        this.lock.unlock();
         return returnDataOutput;
     }
 
@@ -85,10 +88,10 @@ public class ClientConnection {
         this.targetNode = targetNode;
     }
 
-    public void close(){
+    public void close() {
+        this.isClosed = true;
         this.failureCallback.nodeFailed(this.targetNode);
         this.lock.lock();
-        this.isClosed = false;
         this.condition.signalAll();
         this.lock.unlock();
     }

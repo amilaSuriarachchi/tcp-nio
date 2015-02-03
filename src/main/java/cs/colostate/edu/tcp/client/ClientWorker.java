@@ -25,13 +25,13 @@ import java.util.concurrent.CyclicBarrier;
 public class ClientWorker implements Runnable {
 
     private Stream stream;
-    private int numOfMessages;
+    private long numOfMessages;
     private int clientBuffer;
     private CyclicBarrier cyclicBarrier;
     private CountDownLatch countDownLatch;
 
     public ClientWorker(Stream stream,
-                        int numOfMessages,
+                        long numOfMessages,
                         int clientBuffer,
                         CyclicBarrier cyclicBarrier,
                         CountDownLatch countDownLatch) {

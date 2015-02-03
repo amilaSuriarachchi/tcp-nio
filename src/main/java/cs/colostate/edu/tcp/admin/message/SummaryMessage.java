@@ -17,13 +17,13 @@ public class SummaryMessage implements Message {
 
     private int totalReceived;
     private double totalLatency;
-    private int totalSend;
+    private long totalSend;
     private long totalTime;
 
     public SummaryMessage() {
     }
 
-    public SummaryMessage(int totalReceived, double totalLatency, int totalSend, long totalTime) {
+    public SummaryMessage(int totalReceived, double totalLatency, long totalSend, long totalTime) {
         this.totalReceived = totalReceived;
         this.totalLatency = totalLatency;
         this.totalSend = totalSend;
@@ -39,7 +39,7 @@ public class SummaryMessage implements Message {
             dataOutput.writeInt(getMessageType());
             dataOutput.writeInt(this.totalReceived);
             dataOutput.writeDouble(this.totalLatency);
-            dataOutput.writeInt(this.totalSend);
+            dataOutput.writeLong(this.totalSend);
             dataOutput.writeLong(this.totalTime);
         } catch (IOException e) {
             throw new MessageProcessingException("Can not write data ", e);
@@ -50,7 +50,7 @@ public class SummaryMessage implements Message {
         try {
             this.totalReceived = dataInput.readInt();
             this.totalLatency = dataInput.readDouble();
-            this.totalSend = dataInput.readInt();
+            this.totalSend = dataInput.readLong();
             this.totalTime = dataInput.readLong();
         } catch (IOException e) {
             throw new MessageProcessingException("Can not read from stream ", e);
@@ -65,7 +65,7 @@ public class SummaryMessage implements Message {
         return totalLatency;
     }
 
-    public int getTotalSend() {
+    public long getTotalSend() {
         return totalSend;
     }
 

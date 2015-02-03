@@ -21,7 +21,7 @@ import java.util.concurrent.CyclicBarrier;
  */
 public class Client {
 
-    private int totoalSend;
+    private long totoalSend;
     private long totalTime;
 
     public void initializeConnections(Stream stream) {
@@ -35,7 +35,7 @@ public class Client {
     }
 
 
-    public void startClient(Stream stream, int numOfMessages, int numberOfWorkers, int clientBuffer) {
+    public void startClient(Stream stream, long numOfMessages, int numberOfWorkers, int clientBuffer) {
 
 
         CyclicBarrier cyclicBarrier = new CyclicBarrier(numberOfWorkers + 1);
@@ -68,7 +68,7 @@ public class Client {
 
     }
 
-    public int getTotoalSend() {
+    public long getTotoalSend() {
         return totoalSend;
     }
 
@@ -76,7 +76,7 @@ public class Client {
         return totalTime;
     }
 
-    public void startClient(String[] servers, int port, int numberOfMessages, int numberOfWorkers, int clientBuffer) {
+    public void startClient(String[] servers, int port, long numberOfMessages, int numberOfWorkers, int clientBuffer) {
         List<Node> nodes = new ArrayList<Node>();
         for (String host : servers) {
             nodes.add(new Node(port, host));
@@ -96,7 +96,7 @@ public class Client {
 
         String[] servers = args[0].split(",");
         int port = Integer.parseInt(args[1]);
-        int numberOfMessages = Integer.parseInt(args[2]);
+        long numberOfMessages = Long.parseLong(args[2]);
         int numberOfWorkers = Integer.parseInt(args[3]);
         int clientBuffer = Integer.parseInt(args[4]);
 
