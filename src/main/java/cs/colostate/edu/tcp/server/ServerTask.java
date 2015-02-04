@@ -5,7 +5,10 @@ import cs.colostate.edu.tcp.exception.MessageProcessingException;
 import cs.colostate.edu.tcp.Configurator;
 import cs.colostate.edu.tcp.message.TestMessage;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -36,34 +39,45 @@ public class ServerTask implements Runnable {
 
     public void run() {
         DataInput dataInput = null;
-        List<TestMessage> messages = new ArrayList<TestMessage>();
-        for (int i = 0; i < Configurator.getInstance().getTaskBufferMessages(); i++) {
-            messages.add(new TestMessage());
-        }
 
         while (true) {
             dataInput = this.serverConnection.getDataInput();
             try {
-                try {
-                    for (TestMessage message : messages){
-                        message.read(dataInput);
-                        this.messageReceiver.onMessage(message);
-                        this.totalLatency = this.totalLatency + System.currentTimeMillis() - message.getTime();
-                        this.totalMessages++;
-                    }
-                } catch (MessageProcessingException e) {
-                    this.logger.log(Level.SEVERE, "Can not parse the message");
-                }
+                int messageSize = dataInput.readInt();
+                byte[] message = new byte[messageSize];
+                dataInput.readFully(message);
                 this.serverConnection.releaseDataInput(dataInput);
+                // process the messages
+                processMessage(message);
 
+            } catch (MessageProcessingException e) {
+                this.logger.log(Level.SEVERE, "Can not parse the message");
+            } catch (IOException e) {
+                this.logger.log(Level.SEVERE, "Can not read the message");
             } catch (RuntimeException e) {
                 this.logger.log(Level.SEVERE, "Can not read data from connection " + e.getMessage());
-
             }
         }
     }
 
-    public void clearStats(){
+    private void processMessage(byte[] byteMessage) throws MessageProcessingException {
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteMessage);
+        DataInput dataInput = new DataInputStream(byteArrayInputStream);
+        try {
+            int numberOfMessages = dataInput.readInt();
+            for (int i = 0; i < numberOfMessages; i++) {
+                TestMessage message = new TestMessage();
+                message.read(dataInput);
+                this.messageReceiver.onMessage(message);
+                this.totalLatency = this.totalLatency + System.currentTimeMillis() - message.getTime();
+                this.totalMessages++;
+            }
+        } catch (IOException e) {
+            throw new MessageProcessingException("Problem in parsing the message");
+        }
+    }
+
+    public void clearStats() {
         this.totalMessages = 0;
         this.totalLatency = 0;
     }

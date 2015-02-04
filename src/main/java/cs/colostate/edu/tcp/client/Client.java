@@ -34,9 +34,7 @@ public class Client {
 
     }
 
-
     public void startClient(Stream stream, long numOfMessages, int numberOfWorkers, int clientBuffer) {
-
 
         CyclicBarrier cyclicBarrier = new CyclicBarrier(numberOfWorkers + 1);
         CountDownLatch countDownLatch = new CountDownLatch(numberOfWorkers);
@@ -101,7 +99,7 @@ public class Client {
         int clientBuffer = Integer.parseInt(args[4]);
 
         Configurator configurator = Configurator.getInstance();
-        configurator.setValues(1, 20, 8, 8192, 20);
+        configurator.setValues(1, 20, 1, 8192, 20);
 
         Client client = new Client();
         client.startClient(servers, port, numberOfMessages, numberOfWorkers, clientBuffer);

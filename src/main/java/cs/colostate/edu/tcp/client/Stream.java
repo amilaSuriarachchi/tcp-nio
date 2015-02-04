@@ -40,27 +40,12 @@ public class Stream implements FailureCallback {
 
     public void emit(List<Message> messages) throws MessageProcessingException {
 
-        Map<Node, List<Message>> nodeMessageMap = new HashMap<Node, List<Message>>();
-        synchronized (this) {
-            // populate this for all nodes
-            for (int i = 0; i < this.nodes.size(); i++) {
-                nodeMessageMap.put(this.nodes.get(i), new ArrayList<Message>());
-            }
-        }
-
-        Node node = null;
-        for (Message message : messages) {
-            node = getNode();
-            if (node != null) {
-                nodeMessageMap.get(node).add(message);
-            }
-        }
-
-        for (Map.Entry<Node, List<Message>> entry : nodeMessageMap.entrySet()) {
+        Node nextNode = getNode();
+        if (nextNode != null) {
             try {
-                this.clientManager.sendEvents(entry.getValue(), entry.getKey());
+                this.clientManager.sendEvents(messages, nextNode);
             } catch (MessageProcessingException e) {
-                this.logger.log(Level.SEVERE, "Can not send the message to " + entry.getKey().getIpAddress() + " " + e.getMessage());
+                this.logger.log(Level.SEVERE, "Can not send the message to " + nextNode.getIpAddress() + " " + e.getMessage());
             }
         }
     }
