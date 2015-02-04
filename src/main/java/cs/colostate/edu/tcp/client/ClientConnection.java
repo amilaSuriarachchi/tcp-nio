@@ -5,6 +5,7 @@ import cs.colostate.edu.tcp.exception.MessageProcessingException;
 
 import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.SelectionKey;
 import java.util.LinkedList;
@@ -20,7 +21,7 @@ public class ClientConnection {
 
     private Node targetNode;
 
-    private Queue<DataOutput> freeDataOutputs;
+    private DataOutput dataOutput;
 
     private Lock lock;
     private Condition condition;
@@ -31,7 +32,6 @@ public class ClientConnection {
 
     public ClientConnection(Node targetNode) {
         this.targetNode = targetNode;
-        this.freeDataOutputs = new LinkedList<DataOutput>();
         this.lock = new ReentrantLock();
         this.condition = this.lock.newCondition();
         this.isClosed = false;
@@ -41,40 +41,36 @@ public class ClientConnection {
         this.failureCallback = failureCallback;
     }
 
-    public DataOutput getDataOutput() throws MessageProcessingException {
-        DataOutput returnDataOutput = null;
+    public void sendMessage(byte[] message) throws MessageProcessingException {
+
+        if (this.isClosed) {
+            throw new MessageProcessingException("Connection is closed ");
+        }
+
         this.lock.lock();
         try {
-            while ((returnDataOutput = this.freeDataOutputs.poll()) == null) {
-                if (this.isClosed) {
-                    throw new MessageProcessingException("Connection is closed ");
-                }
+            if (this.dataOutput == null) {
                 try {
                     this.condition.await();
                 } catch (InterruptedException e) {
-                    //TODO: handle this properly
                 }
             }
+            this.dataOutput.writeInt(message.length);
+            this.dataOutput.write(message);
+        } catch (IOException e) {
+            throw new MessageProcessingException("Can not send message ");
         } finally {
             this.lock.unlock();
         }
-        return returnDataOutput;
-    }
 
-    public void releaseDataOutput(DataOutput dataOutput) {
-        this.lock.lock();
-        this.freeDataOutputs.add(dataOutput);
-        this.condition.signalAll();
-        this.lock.unlock();
     }
 
     public void registerSelectionKey(SelectionKey selectionKey) {
         OutputStream outputStream = new DataWritter(this);
-        DataOutput dataOutput = new DataOutputStream(outputStream);
         //remove the current attachment
         selectionKey.attach(outputStream);
         this.lock.lock();
-        this.freeDataOutputs.add(dataOutput);
+        this.dataOutput = new DataOutputStream(outputStream);
         this.condition.signalAll();
         this.lock.unlock();
 

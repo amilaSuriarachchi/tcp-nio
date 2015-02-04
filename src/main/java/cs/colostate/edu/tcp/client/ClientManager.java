@@ -60,10 +60,7 @@ public class ClientManager implements FailureCallback {
                 messageOutput.writeInt(1);
                 message.serialize(messageOutput);
                 byte[] byteMessage = byteArrayOutputStream.toByteArray();
-                DataOutput dataOutput = clientConnection.getDataOutput();
-                dataOutput.writeInt(byteMessage.length);
-                dataOutput.write(byteMessage);
-                clientConnection.releaseDataOutput(dataOutput);
+                clientConnection.sendMessage(byteMessage);
             } catch (IOException e) {
                 throw new MessageProcessingException(e.getMessage());
             }
@@ -82,10 +79,7 @@ public class ClientManager implements FailureCallback {
                     message.serialize(messageOutput);
                 }
                 byte[] byteMessage = byteArrayOutputStream.toByteArray();
-                DataOutput dataOutput = clientConnection.getDataOutput();
-                dataOutput.writeInt(byteMessage.length);
-                dataOutput.write(byteMessage);
-                clientConnection.releaseDataOutput(dataOutput);
+                clientConnection.sendMessage(byteMessage);
             } catch (IOException e) {
                 throw new MessageProcessingException(e.getMessage());
             }
