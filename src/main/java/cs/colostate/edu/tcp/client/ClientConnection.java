@@ -43,12 +43,13 @@ public class ClientConnection {
 
     public void sendMessage(byte[] message) throws MessageProcessingException {
 
-        if (this.isClosed) {
-            throw new MessageProcessingException("Connection is closed ");
-        }
-
         this.lock.lock();
         try {
+
+            if (this.isClosed) {
+                throw new MessageProcessingException("Connection is closed ");
+            }
+
             if (this.dataOutput == null) {
                 try {
                     this.condition.await();

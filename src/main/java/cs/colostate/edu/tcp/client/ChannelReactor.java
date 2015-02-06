@@ -44,8 +44,8 @@ public class ChannelReactor implements Runnable {
                             // this error could happen if the server node has crashed or shut down.
                             logger.log(Level.SEVERE, e.getMessage());
                             try {
-                                dataWritter.getClientConnection().close();
                                 dataWritter.close();
+                                dataWritter.getClientConnection().close();
                                 SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                                 socketChannel.shutdownOutput();
                                 socketChannel.close();
